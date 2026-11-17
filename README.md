@@ -1,64 +1,104 @@
 # Singapore HDB Resale Price Analysis
 
-**R | Quarto | tidyverse | ggplot2 | Data validation | Exploratory analysis**
+**R | Quarto | tidyverse | ggplot2 | Exploratory data analysis**
 
-A Singapore Institute of Technology academic team project for **AAI1001: Data Engineering and Visualisation**, Group 15. The project investigates HDB resale price distributions across flat types and compares mature and non-mature estates.
+An academic team project for **AAI1001: Data Engineering and Visualisation** at the Singapore Institute of Technology.
 
-The aim is to look beyond a headline average or median: how widely do prices vary, and what does the distribution reveal about different housing categories?
+The project explores how HDB resale prices are distributed across flat types and how those distributions differ between mature and non-mature estates. It combines data preparation, validation and visualisation to explain more than a single headline price.
 
-## My contribution
+## What question does the project answer?
 
-I am **Daryl Lai Weng Hong**. This repository originated under my previous GitHub account, [DRLLWH](https://github.com/DRLLWH/aai1001_proj); my current account is [StocialAbyss](https://github.com/StocialAbyss).
+A median resale price summarises the middle transaction, but it does not show how tightly prices cluster, how far they spread, or whether distinct groups are being mixed together.
 
-- The team's proposal assigns me **validation and metrics generation**, including median and interquartile-range measures.
-- My recorded commits include adding the R analysis source in `aai.qmd`, updating the proposal, and contributing presentation material explaining the problem and the limitations of headline prices.
-- This is shared team work. Committing an analysis file does not mean I independently authored every transformation, plot or forecasting component. The proposal assigns data visualisation and storytelling to Zulhilmi.
+This project examines:
 
-## Data and analytical workflow
+- How transaction volumes differ across flat types.
+- How price distributions compare between mature and non-mature estates.
+- How remaining lease relates to price per square metre.
+- How monthly median prices change over time.
 
-The analysis source combines HDB resale transaction records with a town-level estate maturity lookup. It includes:
+## 1. Start with the original visualisation
 
-1. Parsing transaction dates, storey ranges and remaining lease information.
-2. Calculating price per square metre and checking transaction counts by flat type.
-3. Joining a normalised town key to the estate maturity lookup.
-4. Checking missing values before analysis.
-5. Comparing prices by flat type and estate maturity.
+![Reference Tableau heatmap showing HDB resale price distributions by flat type](images/visualisation.jpg)
 
-Data files are in `data/`. Consult the proposal for the original transaction-data reference. The maturity lookup is team-researched and should be treated separately from the official transaction source.
+**Reference visualisation:** this heatmap comes from the [Singapore HDB Resale Tableau dashboard credited in the proposal](https://public.tableau.com/app/profile/fshih/viz/SingaporeHDBResale/HDBresale). It is the project's starting point for critique, not an output created by the project team.
 
-## Visualisations in the analysis source
+The horizontal axis separates flat types, the vertical axis shows resale prices, and the colour intensity highlights concentrations of transactions. It provides a quick impression of common price ranges and unusually expensive transactions.
 
-| Visualisation | Analytical purpose |
+The redesign aims to make the statistical comparison clearer: show the median and interquartile range explicitly, and separate mature from non-mature estates rather than combining them in one distribution.
+
+## 2. Prepare and combine the data
+
+![Project workflow from resale transactions through cleaning, joining, aggregation, visualisation and analysis](images/workflowdataengineering.jpg)
+
+The project combines the resale transaction CSV with a team-compiled estate maturity lookup.
+
+| Step | What the code does | Why it matters |
+| --- | --- | --- |
+| Read the sources | Load transaction records and the maturity spreadsheet. | Bring transaction-level prices and estate categories together. |
+| Parse dates | Convert transaction months into dates and extract year/month fields. | Support monthly grouping and trend analysis. |
+| Transform fields | Extract storey-range information and convert remaining lease into numeric years. | Make text fields usable for numerical analysis. |
+| Calculate unit price | Divide resale price by floor area. | Compare prices on a per-square-metre basis. |
+| Inspect coverage | Count transactions by flat type before filtering. | Identify categories with limited representation. |
+| Join the lookup | Standardise estate names in the lookup and join on town. | Add mature/non-mature classification to transactions. |
+| Validate | Count missing values across the enriched dataset. | Identify gaps that could affect interpretation. |
+
+The comparison plots focus on **3-room, 4-room, 5-room and executive flats**. Filtering changes the scope of the analysis; the results should be read as comparisons within those selected categories.
+
+## 3. Explore the distributions and relationships
+
+The following plots are implemented in [`aai.qmd`](aai.qmd). The repository currently contains their R source rather than saved result images.
+
+### Transaction volume by flat type
+
+A bar chart counts transactions in each flat category before filtering.
+
+**How to read it:** taller bars indicate more recorded transactions. This is a data-coverage check, rather than a direct measure of demand: transaction counts also depend on the housing stock and the period covered.
+
+### Resale price distributions by estate maturity
+
+Violin plots compare mature and non-mature estates within each flat type, with boxplots overlaid. The source includes both side-by-side and split-violin versions.
+
+**How to read it:**
+
+- The width of a violin shows where prices are more concentrated.
+- The box shows the middle 50% of transactions.
+- The line inside the box marks the median.
+- Points beyond the whiskers highlight statistical outliers.
+
+This combines distribution shape with familiar statistical landmarks. It helps examine whether groups differ in their central price, spread or high-price tail without assuming that estate maturity causes those differences.
+
+### Remaining lease versus price per square metre
+
+A scatterplot places remaining lease on the horizontal axis and price per square metre on the vertical axis. Separate panels show different flat types, while colour identifies estate maturity.
+
+Faint points reduce the effect of overlapping observations. Linear trend lines summarise the relationship within groups, allowing comparisons across flat types. They describe associations; location, transaction date and other factors may also influence price.
+
+### Historical median prices and an ARIMA forecast
+
+The code aggregates monthly median resale prices by estate maturity, then fits separate ARIMA models and forecasts the next 12 months.
+
+Solid lines represent historical values, dashed lines represent forecasts, and shaded bands show 95% prediction intervals. These intervals communicate uncertainty. The source does not establish out-of-sample forecasting performance, so this is an exploratory extension of the analysis.
+
+## 4. Read or run the project
+
+| File | Purpose |
 | --- | --- |
-| Transaction-count bar chart | Check sample representation across flat types before filtering. |
-| Violin plots with boxplot overlays | Compare price distributions, medians and spread between estate categories. |
-| Lease-versus-price-per-square-metre scatterplots | Explore the relationship between remaining lease and unit price within flat types. |
-| Historical median prices and ARIMA forecast | Explore time-series patterns with prediction intervals; not a validated investment forecast. |
+| [`aai.qmd`](aai.qmd) | Data preparation, checks and plotting code. |
+| [Project proposal](AAI1001Grp15_ProjectProposal.qmd) | Motivation, sources, visualisation critique and design rationale. |
+| `AAI1001Grp15_ProjectProposal.html` | Rendered proposal; download to view locally. |
+| `revealjs_presentation_sample.qmd` | Presentation source, including unfinished sections. |
+| `data/` | Resale transactions and estate maturity lookup. |
+| `aai1001_proj.Rproj` | R project file. |
 
-See [`aai.qmd`](aai.qmd) for the plotting code. This portfolio copy does not yet include newly rendered screenshots of those R charts.
+Use R with `tidyverse`, `lubridate`, `forecast`, `readxl` and `scales`. Run analysis chunks from the repository root so the relative data paths resolve. The QMD currently declares a Jupyter R kernel; Quarto rendering requires that environment, or an intentional change to an R/knitr configuration.
 
-**Attribution:** `images/visualisation.jpg` is a third-party Tableau visualisation used as design inspiration in the proposal. It is not a chart created by me or our team. Its original source is credited in the proposal.
+## Interpretation and scope
 
-## Files and reproduction
+The project demonstrates how joining contextual data and choosing suitable charts can support a clearer comparison of housing prices. The maturity lookup is team-compiled, filtered categories limit coverage, and price differences should not be treated as causal effects. Proposal and presentation files remain alongside the implemented analysis source.
 
-- `aai.qmd`: R data-preparation and plotting source.
-- `AAI1001Grp15_ProjectProposal.qmd` / `.html`: project rationale, sources, proposed responsibilities and AI-use reflection.
-- `revealjs_presentation_sample.qmd` / `.html`: presentation material; several sections remain placeholders.
-- `aai1001_proj.Rproj`: R project file.
+## Team and source
 
-Open the R project and inspect `aai.qmd` in an R-capable editor, such as RStudio. Required R packages used by the analysis include `tidyverse`, `lubridate`, `forecast`, `readxl` and `scales`. Run from the repository root so the `data/` paths resolve. The current QMD declares a Jupyter R kernel; rendering also requires a matching execution environment or an intentional conversion to knitr.
+**Group 15:** Ming Yang, Zi Xin, Desmond, Daryl and Zulhilmi.
 
-These are source-based reproduction notes; a fresh end-to-end execution has not been verified for this portfolio copy.
-
-## Scope and limitations
-
-- The repository contains implemented R analysis code alongside proposal and unfinished presentation material. It should not be presented as a fully polished final submission.
-- Observed differences between estate categories do not establish a causal effect of estate maturity.
-- Filtering flat categories changes the population represented by the charts.
-- The forecast source does not by itself establish out-of-sample forecasting performance.
-
-## Team and provenance
-
-Group 15: Ming Yang, Zi Xin, Desmond, Daryl and Zulhilmi. The proposal records responsibilities for ingestion, cleaning, joining, validation, metrics and visualisation. Original repository: [DRLLWH/aai1001_proj](https://github.com/DRLLWH/aai1001_proj).
-
-The team's proposal discloses AI assistance with wording, R syntax, troubleshooting and visualisation suggestions, with team review of the outputs. That assistance is distinct from the subject matter of this analytical project.
+Original repository: [DRLLWH/aai1001_proj](https://github.com/DRLLWH/aai1001_proj). The proposal includes source attribution and a team AI-use reflection.
