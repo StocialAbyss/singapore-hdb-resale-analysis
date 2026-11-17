@@ -1,6 +1,6 @@
 # Singapore HDB Resale Price Analysis
 
-**R � Quarto � tidyverse � ggplot2 � Data validation � Exploratory analysis**
+**R | Quarto | tidyverse | ggplot2 | Data validation | Exploratory analysis**
 
 A Singapore Institute of Technology academic team project for **AAI1001: Data Engineering and Visualisation**, Group 15. The project investigates HDB resale price distributions across flat types and compares mature and non-mature estates.
 
